@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bridges App - Homework</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #050505; color: #fff; font-family: 'Montserrat', sans-serif; display: flex; justify-content: center; min-height: 100vh; margin: 0; }
+        .app-container { width: 100%; max-width: 400px; background: #0a0a0a; border-x: 1px solid #333; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        .font-epic { font-family: 'Orbitron', sans-serif; }
+        
+        #toast { position: absolute; top: -60px; left: 50%; transform: translateX(-50%); background: #fbbf24; color: #000; padding: 0.5rem 1rem; border-radius: 4px; font-weight: bold; transition: top 0.3s; z-index: 50; }
+        #toast.show { top: 20px; }
+
+        .btn-option { background: #111; border: 1px solid #0ea5e9; color: #0ea5e9; padding: 1rem; border-radius: 4px; font-weight: bold; width: 100%; text-align: left; transition: all 0.2s; cursor: pointer; }
+        .btn-option:active { transform: scale(0.98); }
+        .btn-option.correct { background: #22c55e; border-color: #22c55e; color: #000; }
+        .btn-option.wrong { background: #dc2626; border-color: #dc2626; color: #fff; }
+
+        .blank-space { border-bottom: 2px solid #555; padding: 0 10px; color: transparent; transition: color 0.3s; }
+        .blank-space.filled { color: #fbbf24; border-color: #fbbf24; font-weight: bold; }
+        .blank-space.filled-wrong { color: #dc2626; border-color: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="app-container flex flex-col h-screen w-full shadow-2xl">
+        <div id="toast"><i class="fas fa-check-circle"></i> CORRECT!</div>
+
+        <!-- Header -->
+        <div class="h-16 border-b border-gray-800 flex justify-between items-center px-4 shrink-0 bg-black">
+            <span class="font-epic text-[#fbbf24] tracking-widest text-sm"><i class="fas fa-network-wired"></i> BRIDGES LINK</span>
+            <span class="text-sm text-gray-500 font-bold"><span id="q-counter">1</span>/15</span>
+        </div>
+
+        <!-- Screens -->
+        <div id="screen-start" class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+            <i class="fas fa-satellite-dish text-6xl text-[#0ea5e9] mb-6"></i>
+            <h1 class="font-epic text-2xl mb-2 tracking-widest uppercase">Data Sync Required</h1>
+            <p class="text-gray-400 mb-8 text-sm">Complete the Present Perfect sequences to reconnect the node.</p>
+            <button onclick="startQuiz()" class="w-full bg-[#fbbf24] text-black font-epic font-bold py-4 rounded tracking-widest uppercase hover:bg-yellow-500 transition">START SYNC</button>
+        </div>
+
+        <div id="screen-quiz" class="hidden flex-1 flex flex-col p-6">
+            <div class="flex-1 flex flex-col justify-center mb-8">
+                <p id="q-text" class="text-2xl leading-relaxed">I <span id="blank" class="blank-space">_____</span> the cargo to the city.</p>
+            </div>
+            <div id="options-container" class="flex flex-col gap-4">
+                <!-- Buttons injected here -->
+            </div>
+        </div>
+
+        <div id="screen-end" class="hidden flex-1 flex flex-col items-center justify-center p-6 text-center">
+            <i class="fas fa-trophy text-6xl text-[#fbbf24] mb-6"></i>
+            <h1 class="font-epic text-3xl mb-2 tracking-widest uppercase text-[#fbbf24]">SYNC COMPLETE</h1>
+            <p class="text-gray-400 mb-2">Final Score</p>
+            <p class="text-5xl font-bold mb-8"><span id="score-text">0</span>/15</p>
+            <button onclick="location.reload()" class="w-full border border-gray-600 text-gray-400 font-epic font-bold py-4 rounded tracking-widest uppercase hover:bg-gray-800 transition">RETURN TO BASE</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { q: "I `___` the cargo to the city.", options: ["have delivered", "has delivered", "deliver"], ans: 0 },
+            { q: "Sam `___` connected the network yet.", options: ["has not", "have not", "didn't"], ans: 0 },
+            { q: "`___` you seen a BT before?", options: ["Have", "Has", "Did"], ans: 0 },
+            { q: "They have `___` finished building the bridge.", options: ["already", "yet", "ever"], ans: 0 },
+            { q: "I haven't traveled outside the bunker `___`.", options: ["yet", "already", "just"], ans: 0 },
+            { q: "Fragile `___` jumped through the beach.", options: ["have", "has", "did"], ans: 1 },
+            { q: "We have `___` survived a Timefall storm.", options: ["just", "yet", "ever"], ans: 0 },
+            { q: "`___` she ever played Death Stranding?", options: ["Have", "Did", "Has"], ans: 2 },
+            { q: "The Prepper `___` joined the UCA.", options: ["hasn't", "haven't", "isn't"], ans: 0 },
+            { q: "I have never `___` so scared in my life.", options: ["be", "been", "was"], ans: 1 },
+            { q: "Have they `___` the package?", options: ["find", "found", "finded"], ans: 1 },
+            { q: "He `___` worked as a Porter for 5 years.", options: ["has", "have", "is"], ans: 0 },
+            { q: "I have `___` this game before.", options: ["play", "played", "playing"], ans: 1 },
+            { q: "Have you `___` eaten cryptobiotes?", options: ["ever", "never", "yet"], ans: 0 },
+            { q: "The connection `___` been established.", options: ["have", "has", "did"], ans: 1 }
+        ];
+
+        let currentQ = 0;
+        let score = 0;
+        let isAnswering = false;
+
+        function startQuiz() {
+            document.getElementById('screen-start').classList.add('hidden');
+            document.getElementById('screen-quiz').classList.remove('hidden');
+            document.getElementById('screen-quiz').classList.add('flex');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            isAnswering = false;
+            document.getElementById('q-counter').innerText = currentQ + 1;
+            const qData = questions[currentQ];
+            
+            const parts = qData.q.split('`___`');
+            document.getElementById('q-text').innerHTML = `${parts[0]}<span id="blank" class="blank-space">_____</span>${parts[1]}`;
+            
+            const optsContainer = document.getElementById('options-container');
+            optsContainer.innerHTML = '';
+            
+            qData.options.forEach((opt, idx) => {
+                optsContainer.innerHTML += `<button onclick="checkAns(${idx}, this)" class="btn-option font-epic">${opt}</button>`;
+            });
+        }
+
+        function checkAns(idx, btn) {
+            if(isAnswering) return;
+            isAnswering = true;
+            
+            const correctIdx = questions[currentQ].ans;
+            const blank = document.getElementById('blank');
+            blank.innerText = questions[currentQ].options[idx];
+            
+            if(idx === correctIdx) {
+                btn.classList.add('correct');
+                blank.classList.add('filled');
+                score++;
+                showToast();
+            } else {
+                btn.classList.add('wrong');
+                blank.classList.add('filled-wrong');
+                document.querySelectorAll('.btn-option')[correctIdx].classList.add('correct');
+            }
+
+            setTimeout(() => {
+                currentQ++;
+                if(currentQ < questions.length) loadQuestion();
+                else endQuiz();
+            }, 1500);
+        }
+
+        function showToast() {
+            const t = document.getElementById('toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 1000);
+        }
+
+        function endQuiz() {
+            document.getElementById('screen-quiz').classList.remove('flex');
+            document.getElementById('screen-quiz').classList.add('hidden');
+            document.getElementById('screen-end').classList.remove('hidden');
+            document.getElementById('screen-end').classList.add('flex');
+            document.getElementById('score-text').innerText = score;
+        }
+    </script>
+</body>
+</html>
